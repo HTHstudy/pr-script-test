@@ -27,13 +27,13 @@ jobs:
       github.ref_name == github.event.repository.default_branch
     runs-on: ${{ vars.RUNNER_LABEL || 'arc-runner' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       # check:tokens 가 파이썬 스크립트다(scripts/run-python.mjs 가 인터프리터를 찾는다).
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - run: npm ci
