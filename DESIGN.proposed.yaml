@@ -1,0 +1,18 @@
+# 제안층 — 승격 대기 토큰
+#
+# 확정층(DESIGN.md)에 없는 값이 필요할 때 여기에 근거와 함께 등록한다.
+# 다섯 필드가 모두 필요하다: value, added, by, rationale, status
+#
+# 등록한 색은 src/app/global.css 의 @theme 에도 --color-<이름> 으로 함께 추가해야
+# 코드에서 쓸 수 있다. 게이트가 두 곳의 일치를 검사한다.
+#
+# 예시:
+# colors:
+#   info:
+#     value: '#2D7FF9'
+#     added: '2026-09-01'
+#     by: '기획'
+#     rationale: '주문 상태 안내 배지 — 기존 팔레트에 중립 정보색 없음'
+#     status: pending
+
+colors: {}
