@@ -1,0 +1,24 @@
+npm run lint || exit 1
+npm run check:tokens || exit 1
+
+# G3 — 위 두 검사는 인덱스(스테이지된 내용)가 아니라 디스크의 작업 트리를 그대로
+# 스캔한다(check:tokens 는 app/·src/ 를 rglob 한다). staged 파일이 그 이후 다시
+# unstaged 로 바뀌어 있으면(예: p-5 를 스테이지했다가 p-4 로 고치고 재스테이지를
+# 잊은 경우), 방금 통과한 검사는 실제로 커밋될 내용이 아니라 디스크의 최신 상태를
+# 본 것이다 — 커밋에는 여전히 옛 staged 내용(p-5)이 들어간다. 그 교집합이 있으면
+# 커밋을 거부한다. 단순히 수정만 되고 스테이지되지 않은 파일(부분 커밋)은 문제없다
+# — 그런 파일은 이 교집합에 안 걸린다.
+STAGED_LIST=$(mktemp)
+UNSTAGED_LIST=$(mktemp)
+git diff --name-only --cached | sort > "$STAGED_LIST"
+git diff --name-only | sort > "$UNSTAGED_LIST"
+STAGED_AND_UNSTAGED=$(comm -12 "$STAGED_LIST" "$UNSTAGED_LIST")
+rm -f "$STAGED_LIST" "$UNSTAGED_LIST"
+if [ -n "$STAGED_AND_UNSTAGED" ]; then
+  echo "다음 파일은 staged 상태인데 그 이후 다시 unstaged 로 바뀌었다 — 방금 통과한" >&2
+  echo "lint/check:tokens 는 지금 디스크 내용을 봤을 뿐, 실제로 커밋될 staged 내용과" >&2
+  echo "다를 수 있다:" >&2
+  echo "$STAGED_AND_UNSTAGED" >&2
+  echo "git add 로 최신 내용을 다시 스테이지하거나, 전체를 커밋하려면 git commit -a 를 써라." >&2
+  exit 1
+fi

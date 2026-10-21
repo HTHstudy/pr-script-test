@@ -1,0 +1,170 @@
+/* 자동 소스 감지를 끄고 app/·src/ 만 명시적으로 스캔한다(경로는 이 파일 기준 상대경로).
+   기본 자동 감지는 gitignore 되지 않은 프로젝트 전체를 훑어 docs/superpowers/**.md 안의
+   className 형태 문자열(예: p-16, duration-200, bg-accent)까지 유틸리티로 뽑아 번들에
+   싣는다 — 토큰 게이트는 docs/ 를 보지 않으므로 여기서 스킴이 어긋나는 예시가 그대로
+   프로덕션에 실린다(F6). scripts/check-design-tokens.py 의 SCAN_DIRS 와 범위를 맞춘다. */
+@import 'tailwindcss' source(none);
+@source '../../app';
+@source '../../src';
+
+/* 한글 서체 — Pretendard variable dynamic subset. unicode-range 로 조각이 갈려 있어
+   한글이 없는 화면은 조각을 받지 않는다. 저자 공식 릴리스를 그대로 쓴다 — 직접 서브셋을
+   뜨면 OFL Modified Version 이 되어 Reserved Font Name 을 못 쓴다(DESIGN.md §5.1). */
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+
+@theme {
+  /* Tailwind 기본 팔레트·radius 를 지운다. 이게 없으면 bg-blue-500 같은 기본 유틸리티가
+     그대로 살아 있고, 게이트는 hex 리터럴과 white/black 유틸리티만 보므로 놓친다.
+     원장 밖 색이 코드에 들어오는 가장 넓은 구멍이다. */
+  --color-*: initial;
+  --radius-*: initial;
+
+  --color-background: #F8F8F8;
+  --color-background-shade: #DFDFDF;
+  --color-surface-dark: #2A2A2A;
+  --color-surface-black: #070707;
+  --color-text: #070707;
+  --color-text-subtle: #6A6A6A;
+  --color-text-disabled: #AAAAAA;
+  --color-text-muted: #C6C6C6;
+  --color-text-inverse: #F8F8F8;
+  --color-accent: #24F351;
+  --color-accent-pressed: #1DC241;
+  --color-accent-deep: #127A29;
+  --color-green-tint-01: #66F785;
+  --color-green-tint-02: #A7FAB9;
+  --color-green-tint-03: #D3FDDC;
+  --color-green-shade-03: #0B4918;
+  --color-grey-tint: #EAEAEA;
+  --color-scrim: #07070799;
+  --color-warning: #FF9F1C;
+  --color-danger: #C41E1E;
+  --color-danger-tint: #F9D7D7;
+
+  /* 서체 — 라틴은 GT Maru·Inter, 한글은 Pretendard(DESIGN.md §5).
+     Pretendard 를 스택 끝에 두는 이유는 §5 참조. */
+  --font-maru: 'GT Maru', var(--font-inter-next), 'Pretendard Variable', sans-serif;
+  --font-inter: var(--font-inter-next), Inter, 'Pretendard Variable', sans-serif;
+
+  /* 모션 (DESIGN.md §6 motion 1:1). 원장에만 두면 코드가 Tailwind 기본
+     duration-200 으로 흘러간다 — 상속 원장이 실제로 그렇게 드리프트했다. */
+  --duration-fast: 150ms;
+  --duration-standard: 250ms;
+  --ease-standard: ease-out;
+  /* press-offset 은 축별로 나눠 둔다. 한 변수에 '4px 5px' 를 담으면 Tailwind 의
+     translate-(--var) 가 그 값을 x·y 양쪽에 넣어 translate: 4px 5px 4px 5px 라는
+     무효한 값이 된다 — translate-* 는 스칼라 하나를 두 축에 적용하는 유틸리티다.
+     축별로 두면 translate-x-(--press-offset-x) 로 원장을 직접 참조할 수 있다. */
+  --press-offset-x: 4px;
+  --press-offset-y: 5px;
+  --hover-lift: -2px;
+
+  --radius-small: 10px;
+  --radius-card: 24px;
+  --radius-pill: 999px;
+
+  --shadow-extruded: 4px 5px 0 #070707;
+}
+
+:root {
+  --fs-headline: 1.75rem;
+  --fs-subhead: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --fs-headline: 1.375rem;
+    --fs-subhead: 1.25rem;
+  }
+}
+
+/* DESIGN.md typography 8토큰 */
+@layer components {
+  .typo-headline {
+    font-family: var(--font-maru);
+    font-weight: 900;
+    font-size: var(--fs-headline);
+    line-height: 95%;
+    letter-spacing: -0.06em;
+    text-transform: uppercase;
+  }
+  .typo-subhead {
+    font-family: var(--font-maru);
+    font-weight: 700;
+    font-size: var(--fs-subhead);
+    line-height: 98%;
+    letter-spacing: -0.06em;
+    text-transform: uppercase;
+  }
+  .typo-body-head {
+    font-family: var(--font-maru);
+    font-weight: 700;
+    font-size: 1.125rem;
+    line-height: 101%;
+    text-transform: uppercase;
+  }
+  .typo-body-large {
+    font-family: var(--font-maru);
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 131%;
+  }
+  .typo-body {
+    font-family: var(--font-inter);
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 123%;
+  }
+  .typo-body-small {
+    font-family: var(--font-inter);
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 124%;
+  }
+  .typo-label {
+    font-family: var(--font-maru);
+    font-weight: 700;
+    font-size: 0.875rem;
+    line-height: 124%;
+    text-transform: uppercase;
+  }
+  .typo-label-small {
+    font-family: var(--font-maru);
+    font-weight: 500;
+    font-size: 0.75rem;
+    line-height: 127%;
+    text-transform: uppercase;
+  }
+}
+
+/* 한글 자간 예외 (DESIGN.md §5). @layer 밖에 둔다 — 레이어 안이면 .typo-* 와 같은 층이라
+   선언 순서에 의존한다. */
+html[lang='ko'] .typo-headline,
+html[lang='ko'] .typo-subhead {
+  letter-spacing: -0.03em;
+}
+
+@font-face {
+  font-family: 'GT Maru';
+  src: url('/font/GT-Maru-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GT Maru';
+  src: url('/font/GT-Maru-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GT Maru';
+  src: url('/font/GT-Maru-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GT Maru';
+  src: url('/font/GT-Maru-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
