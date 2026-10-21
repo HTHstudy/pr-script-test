@@ -1,0 +1,41 @@
+# 템플릿 게이트(lint · typecheck · 디자인 토큰)를 GitHub 에서 다시 돌린다.
+#
+# 판단 로직은 여기 두지 않는다. `npm run verify` 를 부르기만 한다 — 규칙은 레포 안
+# (eslint.config.mjs · scripts/)에 있고, 이 파일은 forge 가 바뀌면 버려도 되는 얇은 래퍼다.
+#
+# 로컬 git 훅(pre-commit · pre-push)은 `git commit -n`·`HUSKY=0` 으로 건너뛸 수 있고,
+# 작업 트리를 볼 뿐 커밋된 내용을 보지 않는다. 이 워크플로가 그 두 구멍을 메운다.
+#
+# 러너·기본 브랜치 규칙은 조직 워크플로(codeql.yml)와 같다.
+
+name: verify
+
+on:
+  pull_request:
+  push:
+    # 기본 브랜치명은 on: 에 적을 수 없다(표현식 미지원). job 의 if 에서 거른다.
+    branches: ['**']
+    tags-ignore: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.ref_name == github.event.repository.default_branch
+    runs-on: ${{ vars.RUNNER_LABEL || 'arc-runner' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # check:tokens 가 파이썬 스크립트다(scripts/run-python.mjs 가 인터프리터를 찾는다).
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run verify
+      - run: npm run test:gate
